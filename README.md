@@ -1,5 +1,5 @@
-# List-compn
-Compare two different lists of strings/filenames for matches.
+# MovieList-compn
+Compare two different lists with movie filenames for matches.
 
 Made for user **compn** from DonationCoder.com
 
