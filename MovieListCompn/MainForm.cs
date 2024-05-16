@@ -157,7 +157,8 @@ namespace MovieListCompn
         /// <param name="e">Event arguments.</param>
         private void OnMoreReleasesParadisusisToolStripMenuItemClick(object sender, EventArgs e)
         {
-
+            // Open our site's releases portal
+            Process.Start("https://paradisus.is/releases/");
         }
 
         /// <summary>
