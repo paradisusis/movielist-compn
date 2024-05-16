@@ -90,16 +90,31 @@ namespace MovieListCompn
 
         }
 
+        /// <summary>
+        /// Ons the main form load.
+        /// </summary>
+        /// <param name="sender">Sender.</param>
+        /// <param name="e">E.</param>
         private void OnMainFormLoad(object sender, EventArgs e)
         {
 
         }
 
+        /// <summary>
+        /// Ons the main form form closing.
+        /// </summary>
+        /// <param name="sender">Sender.</param>
+        /// <param name="e">E.</param>
         private void OnMainFormFormClosing(object sender, FormClosingEventArgs e)
         {
 
         }
 
+        /// <summary>
+        /// Ons the exit tool strip menu item click.
+        /// </summary>
+        /// <param name="sender">Sender.</param>
+        /// <param name="e">E.</param>
         private void OnExitToolStripMenuItemClick(object sender, EventArgs e)
         {
 
