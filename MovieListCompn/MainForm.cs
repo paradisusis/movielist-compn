@@ -15,6 +15,9 @@ namespace MovieListCompn
     /// </summary>
     public partial class MainForm : Form
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="T:MovieListCompn.MainForm"/> class.
+        /// </summary>
         public MainForm()
         {
             //
@@ -30,7 +33,12 @@ namespace MovieListCompn
         /// <param name="e">Event arguments.</param>
         private void OnNewToolStripMenuItemClick(object sender, EventArgs e)
         {
+            // Clear text boxes
+            this.firstListTextBox.Clear();
+            this.secondListTextBox.Clear();
 
+            // Reset status
+            this.statusValueToolStripStatusLabel.Text = "collection";
         }
 
         /// <summary>
@@ -68,7 +76,7 @@ namespace MovieListCompn
             }
 
             // Advise and disable
-            this.statusValueToolStripStatusLabel.Text = "Processing...";
+            this.statusValueToolStripStatusLabel.Text = "processing...";
             this.processButton.Enabled = false;
 
             /* Set MofileFile lists */
@@ -280,7 +288,7 @@ namespace MovieListCompn
             }
 
             // Advise and enable
-            this.statusValueToolStripStatusLabel.Text = "Processed";
+            this.statusValueToolStripStatusLabel.Text = "processed";
             this.processButton.Enabled = true;
         }
 
