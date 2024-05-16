@@ -167,7 +167,8 @@ namespace MovieListCompn
         /// <param name="e">Event arguments.</param>
         private void OnOriginalThreadDonationCodercomToolStripMenuItemClick(object sender, EventArgs e)
         {
-
+            // Open original thread
+            Process.Start("https://www.donationcoder.com/forum/index.php?topic=54168.0");
         }
 
         /// <summary>
