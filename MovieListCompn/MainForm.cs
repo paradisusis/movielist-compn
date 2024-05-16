@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Windows.Forms;
 using MovieFileLibrary;
 
@@ -59,49 +60,228 @@ namespace MovieListCompn
                 return;
             }
 
-            /* Set lists */
+            // If nothing must be processed, exit
+            if (!this.matchesToolStripMenuItem.Checked && !this.unmatchedToolStripMenuItem.Checked)
+            {
+                // Halt flow
+                return;
+            }
 
-            // Set first list
-            List<string> firstList = new List<string>(File.ReadAllLines(this.firstListTextBox.Text));
+            // Advise and disable
+            this.statusValueToolStripStatusLabel.Text = "Processing...";
+            this.processButton.Enabled = false;
 
-            // Set second list
-            List<string> secondList = new List<string>(File.ReadAllLines(this.secondListTextBox.Text));
+            /* Set MofileFile lists */
 
-            // Set first list movies
-            List<string> firstListMovies = new List<string>();
+            // Set first list movie files
+            List<MovieFile> firstList = new List<MovieFile>();
 
             // Set second list movies
-            List<string> secondListMovies = new List<string>();
+            List<MovieFile> secondList = new List<MovieFile>();
 
             /* Populate with movies */
 
             // Set movie detector
             var detector = new MovieDetector();
 
-            // Populate first list movies
+            // Populate first list
+            foreach (var moviePath in File.ReadAllLines(this.firstListTextBox.Text))
+            {
+                // Add movie file
+                firstList.Add(detector.GetInfo(moviePath));
+            }
+
+            // Populate second list
+            foreach (var moviePath in File.ReadAllLines(this.secondListTextBox.Text))
+            {
+                // Add movie file
+                secondList.Add(detector.GetInfo(moviePath));
+            }
+
+            /* Post processing */
+
+            // TODO Remove prepended year from first list [DRY, function]
             for (int i = 0; i < firstList.Count; i++)
             {
-                // Add matching movie
-                firstListMovies.Add(detector.GetInfo(firstList[i]).Title);
+                // Set title words list
+                var titleWords = new List<string>(firstList[i].Title.Split(' '));
+
+                // Check if there are 2+ words and first one is numeric
+                if (titleWords.Count > 0 && int.TryParse(titleWords[0], out _))
+                {
+                    // Remove first word
+                    titleWords.RemoveAt(0);
+
+                    // Update title
+                    firstList[i].Title = string.Join(" ", titleWords);
+                }
             }
 
-            // Populate second list movies
+            // TODO Remove prepended year from second list [DRY, function]
             for (int i = 0; i < secondList.Count; i++)
             {
-                // Add matching movie
-                secondListMovies.Add(detector.GetInfo(secondList[i]).Title);
+                // Set title words list
+                var titleWords = new List<string>(secondList[i].Title.Split(' '));
+
+                // Check if there are 2+ words and first one is numeric
+                if (titleWords.Count > 0 && int.TryParse(titleWords[0], out _))
+                {
+                    // Remove second word
+                    titleWords.RemoveAt(0);
+
+                    // Update title
+                    secondList[i].Title = string.Join(" ", titleWords);
+                }
             }
 
-            /* Matches */
+            //#
+            /*var movieTitles = new List<string>();
 
-            // Matches list
-            var matchesList = new List<string>();
+            foreach (var movie in firstList)
+            {
+                movieTitles.Add(movie.Title);
+            }
+
+            File.WriteAllLines("firstList.txt", movieTitles);
+
+            movieTitles.Clear();
+
+            foreach (var movie in firstList)
+            {
+                movieTitles.Add(movie.Title);
+            }
+
+            File.WriteAllLines("secondList.txt", movieTitles);*/
+
+            /* Set matches */
+
+            // Collect the matches
+            var matchesCollection = firstList.Where(y => secondList.Any(z => z.Title.ToLowerInvariant() == y.Title.ToLowerInvariant()));
+
+            // The matches (sorted) dictionary
+            var matchesDictionary = new SortedDictionary<string, string>();
+
+            // Populate matches dictionary
+            foreach (var movieMatch in matchesCollection)
+            {
+                // Lowercase title
+                string titleLc = movieMatch.Title.ToLowerInvariant();
+
+                // Collect first list matches
+                var firstListMatches = firstList.Where(x => x.Title.ToLower() == titleLc);
+
+                // Collect second list matches
+                var secondListMatches = secondList.Where(x => x.Title.ToLower() == titleLc);
+
+                // Check it's unique
+                if (!matchesDictionary.ContainsKey(titleLc))
+                {
+                    // Add current movie to dictionary
+                    matchesDictionary.Add(movieMatch.Title.ToLowerInvariant(), $"{movieMatch.Title}{Environment.NewLine}First list:{Environment.NewLine}{string.Join(Environment.NewLine, firstListMatches.Select(f => f.Path).ToList())}{Environment.NewLine}Second list:{Environment.NewLine}{string.Join(Environment.NewLine, secondListMatches.Select(s => s.Path).ToList())}");
+                }
+            }
 
             // Check if must process matches
             if (this.matchesToolStripMenuItem.Checked)
             {
+                // Empty file name
+                this.saveFileDialog.FileName = "MovieList-matches.txt";
 
+                // Open save file dialog
+                if (this.saveFileDialog.ShowDialog() == DialogResult.OK && this.saveFileDialog.FileName.Length > 0)
+                {
+                    try
+                    {
+                        // Save to disk
+                        File.WriteAllText(this.saveFileDialog.FileName, string.Join($"{Environment.NewLine}{Environment.NewLine}", matchesDictionary.Values));
+                    }
+                    catch (Exception exception)
+                    {
+                        // Inform user
+                        MessageBox.Show($"Error when saving to \"{Path.GetFileName(this.saveFileDialog.FileName)}\":{Environment.NewLine}{exception.Message}", "Save file error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
             }
+
+            // Check if must process unmatched
+            if (this.unmatchedToolStripMenuItem.Checked)
+            {
+                // Empty file name
+                this.saveFileDialog.FileName = "MovieList-unmatched.txt";
+
+                // Open save file dialog
+                if (this.saveFileDialog.ShowDialog() == DialogResult.OK && this.saveFileDialog.FileName.Length > 0)
+                {
+                    // Unmatched collection
+                    string unmatchedCollection = string.Empty;
+
+                    // First unmatched list
+                    var firstUnmatchedList = new List<string>();
+
+                    // TODO Compare against matched dictionary [Logic can be improved]
+                    foreach (var movie in firstList)
+                    {
+                        // Check for a match
+                        if (!matchesDictionary.ContainsKey(movie.Title.ToLowerInvariant()))
+                        {
+                            // Add to unmatched list
+                            firstUnmatchedList.Add(movie.Path);
+                        }
+                    }
+
+                    // Check there are unmatched items
+                    if (firstUnmatchedList.Count > 0)
+                    {
+                        // Sort unmatched list
+                        firstUnmatchedList.Sort();
+
+                        // Add to unmatched collection
+                        unmatchedCollection = $"First list:{Environment.NewLine}";
+                        unmatchedCollection += string.Join(Environment.NewLine, firstUnmatchedList);
+                    }
+
+                    // Second unmatched list
+                    var secondUnmatchedList = new List<string>();
+
+                    // TODO Compare against matched dictionary [Logic can be improved]
+                    foreach (var movie in secondList)
+                    {
+                        // Check for a match
+                        if (!matchesDictionary.ContainsKey(movie.Title.ToLowerInvariant()))
+                        {
+                            // Add to unmatched list
+                            secondUnmatchedList.Add(movie.Path);
+                        }
+                    }
+
+                    // Check there are unmatched items
+                    if (secondUnmatchedList.Count > 0)
+                    {
+                        // Sort unmatched list
+                        secondUnmatchedList.Sort();
+
+                        // Add to unmatched collection
+                        unmatchedCollection += $"{(firstUnmatchedList.Count > 0 ? $"{Environment.NewLine}{Environment.NewLine}" : string.Empty)}Second list:{Environment.NewLine}";
+                        unmatchedCollection += string.Join(Environment.NewLine, secondUnmatchedList);
+                    }
+
+                    try
+                    {
+                        // Save to disk
+                        File.WriteAllText(this.saveFileDialog.FileName, unmatchedCollection);
+                    }
+                    catch (Exception exception)
+                    {
+                        // Inform user
+                        MessageBox.Show($"Error when saving to \"{Path.GetFileName(this.saveFileDialog.FileName)}\":{Environment.NewLine}{exception.Message}", "Save file error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+
+                }
+            }
+
+            // Advise and enable
+            this.statusValueToolStripStatusLabel.Text = "Processed";
+            this.processButton.Enabled = true;
         }
 
         /// <summary>
