@@ -409,6 +409,8 @@ namespace MovieListCompn
             var licenseText = $"CC0 1.0 Universal (CC0 1.0) - Public Domain Dedication{Environment.NewLine}" +
                 $"https://creativecommons.org/publicdomain/zero/1.0/legalcode{Environment.NewLine}{Environment.NewLine}" +
                 $"Libraries and icons have separate licenses.{Environment.NewLine}{Environment.NewLine}" +
+                $"MovieFileLibrary by Peyman Mohammadi - MIT License{Environment.NewLine}" +
+                $"https://github.com/moviecollection/movie-file-library/{Environment.NewLine}{Environment.NewLine}" +
                 $"List icon set by Clker-Free-Vector-Images - Pixabay Content License{Environment.NewLine}" +
                 $"https://pixabay.com/vectors/list-bullet-points-items-one-two-27221/{Environment.NewLine}{Environment.NewLine}" +
                 $"GitHub mark icon used according to published logos and usage guidelines{Environment.NewLine}" +
