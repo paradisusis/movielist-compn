@@ -1,20 +1,33 @@
-﻿
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Drawing;
-using System.IO;
-using System.Linq;
-using System.Windows.Forms;
-using MovieFileLibrary;
+﻿// <copyright file="MainForm.cs" company="Paradisus.is">
+//     CC0 1.0 Universal (CC0 1.0) - Public Domain Dedication
+//     https://creativecommons.org/publicdomain/zero/1.0/legalcode
+// </copyright>
 
 namespace MovieListCompn
 {
+    // Directives
+    using System;
+    using System.Collections.Generic;
+    using System.Diagnostics;
+    using System.Drawing;
+    using System.IO;
+    using System.Linq;
+    using System.Reflection;
+    using System.Windows.Forms;
+    using MovieFileLibrary;
+    using ParadisusIs;
+
     /// <summary>
-    /// Description of MainForm.
+    /// MainForm.
     /// </summary>
     public partial class MainForm : Form
     {
+        /// <summary>
+        /// Gets or sets the associated icon.
+        /// </summary>
+        /// <value>The associated icon.</value>
+        private Icon associatedIcon = null;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="T:MovieListCompn.MainForm"/> class.
         /// </summary>
@@ -24,6 +37,11 @@ namespace MovieListCompn
             // The InitializeComponent() call is required for Windows Forms designer support.
             //
             InitializeComponent();
+
+            /* Set icons */
+
+            // Set associated icon 
+            this.associatedIcon = this.Icon;
         }
 
         /// <summary>
@@ -39,6 +57,9 @@ namespace MovieListCompn
 
             // Reset status
             this.statusValueToolStripStatusLabel.Text = "collection";
+
+            // Focus first list
+            this.firstListTextBox.Focus();
         }
 
         /// <summary>
@@ -69,7 +90,7 @@ namespace MovieListCompn
             }
 
             // If nothing must be processed, exit
-            if (!this.matchesToolStripMenuItem.Checked && !this.unmatchedToolStripMenuItem.Checked)
+            if ((this.firstListTextBox.Text == this.secondListTextBox.Text) || (!this.matchesToolStripMenuItem.Checked && !this.unmatchedToolStripMenuItem.Checked))
             {
                 // Halt flow
                 return;
@@ -283,7 +304,6 @@ namespace MovieListCompn
                         // Inform user
                         MessageBox.Show($"Error when saving to \"{Path.GetFileName(this.saveFileDialog.FileName)}\":{Environment.NewLine}{exception.Message}", "Save file error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
-
                 }
             }
 
@@ -385,7 +405,43 @@ namespace MovieListCompn
         /// <param name="e">Event arguments.</param>
         private void OnAboutToolStripMenuItemClick(object sender, EventArgs e)
         {
+            // Set license text
+            var licenseText = $"CC0 1.0 Universal (CC0 1.0) - Public Domain Dedication{Environment.NewLine}" +
+                $"https://creativecommons.org/publicdomain/zero/1.0/legalcode{Environment.NewLine}{Environment.NewLine}" +
+                $"Libraries and icons have separate licenses.{Environment.NewLine}{Environment.NewLine}" +
+                $"List icon set by Clker-Free-Vector-Images - Pixabay Content License{Environment.NewLine}" +
+                $"https://pixabay.com/vectors/list-bullet-points-items-one-two-27221/{Environment.NewLine}{Environment.NewLine}" +
+                $"GitHub mark icon used according to published logos and usage guidelines{Environment.NewLine}" +
+                $"https://github.com/logos{Environment.NewLine}{Environment.NewLine}" +
+                $"DonationCoder icon used with permission{Environment.NewLine}" +
+                $"https://www.donationcoder.com/forum/index.php?topic=48718{Environment.NewLine}{Environment.NewLine}";
 
+            // Prepend sponsors
+            licenseText = $"RELEASE SUPPORTERS:{Environment.NewLine}{Environment.NewLine}* Jesse Reichler (mouser){Environment.NewLine}* compn{Environment.NewLine}=========={Environment.NewLine}{Environment.NewLine}" + licenseText;
+
+            // Set title
+            string programTitle = typeof(MainForm).GetTypeInfo().Assembly.GetCustomAttribute<AssemblyTitleAttribute>().Title;
+
+            // Set version for generating semantic version
+            Version version = typeof(MainForm).GetTypeInfo().Assembly.GetName().Version;
+
+            // Set about form
+            var aboutForm = new AboutForm(
+                $"About {programTitle}",
+                $"{programTitle} {version.Major}.{version.Minor}.{version.Build}",
+                $"Made for:compn{Environment.NewLine}DonationCoder.com{Environment.NewLine}Day #137, Week #20 @ May 16, 2024",
+                licenseText,
+                this.Icon.ToBitmap())
+            {
+                // Set about form icon
+                Icon = this.associatedIcon,
+
+                // Set always on top
+                TopMost = this.TopMost
+            };
+
+            // Show about form
+            aboutForm.ShowDialog();
         }
 
         /// <summary>
