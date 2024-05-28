@@ -72,7 +72,77 @@ namespace MovieListCompn
         /// <param name="e">Event arguments.</param>
         private void OnSaveToolStripMenuItemClick(object sender, EventArgs e)
         {
+            /* Matches */
 
+            // Check there's something to save
+            if (this.matchesRichTextBox.TextLength > 0)
+            {
+                // Empty file name
+                this.saveFileDialog.FileName = "MovieList-matches.txt";
+
+                // Open save file dialog
+                if (this.saveFileDialog.ShowDialog() == DialogResult.OK && this.saveFileDialog.FileName.Length > 0)
+                {
+                    try
+                    {
+                        // Save to disk
+                        File.WriteAllText(this.saveFileDialog.FileName, this.matchesRichTextBox.Text);
+                    }
+                    catch (Exception exception)
+                    {
+                        // Inform user
+                        MessageBox.Show($"Error when saving to \"{Path.GetFileName(this.saveFileDialog.FileName)}\":{Environment.NewLine}{exception.Message}", "Save file error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+            }
+
+            /* Unmatched */
+
+            // Check there's something to save
+            if (this.unmatchedRichTextBox.TextLength > 0)
+            {
+                // Empty file name
+                this.saveFileDialog.FileName = "MovieList-unmatched.txt";
+
+                // Open save file dialog
+                if (this.saveFileDialog.ShowDialog() == DialogResult.OK && this.saveFileDialog.FileName.Length > 0)
+                {
+                    try
+                    {
+                        // Save to disk
+                        File.WriteAllText(this.saveFileDialog.FileName, this.unmatchedRichTextBox.Text);
+                    }
+                    catch (Exception exception)
+                    {
+                        // Inform user
+                        MessageBox.Show($"Error when saving to \"{Path.GetFileName(this.saveFileDialog.FileName)}\":{Environment.NewLine}{exception.Message}", "Save file error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+            }
+
+            /* Collisions */
+
+            // Check there's something to save
+            if (this.collisionsRichTextBox.TextLength > 0)
+            {
+                // Empty file name
+                this.saveFileDialog.FileName = "MovieList-collisions.txt";
+
+                // Open save file dialog
+                if (this.saveFileDialog.ShowDialog() == DialogResult.OK && this.saveFileDialog.FileName.Length > 0)
+                {
+                    try
+                    {
+                        // Save to disk
+                        File.WriteAllText(this.saveFileDialog.FileName, this.collisionsRichTextBox.Text);
+                    }
+                    catch (Exception exception)
+                    {
+                        // Inform user
+                        MessageBox.Show($"Error when saving to \"{Path.GetFileName(this.saveFileDialog.FileName)}\":{Environment.NewLine}{exception.Message}", "Save file error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -480,91 +550,19 @@ namespace MovieListCompn
                     // Update count in tab
                     this.unmatchedTabPage.Text = $"Unmatched ({unmatchedTotal})";
                 }
+            }
 
-                /*// Empty file name
-                this.saveFileDialog.FileName = "MovieList-unmatched.txt";
-
-                // Open save file dialog
-                if (this.saveFileDialog.ShowDialog() == DialogResult.OK && this.saveFileDialog.FileName.Length > 0)
+            // Check if must process collisions
+            if (this.collisionsToolStripMenuItem.Checked)
+            {
+                // Check for collisions
+                if (collisionsDictionary.Count > 0)
                 {
-                    // Unmatched collection
-                    string unmatchedCollection = string.Empty;
+                    // Set into text box 
+                    this.collisionsRichTextBox.Text = string.Join($"{Environment.NewLine}{Environment.NewLine}", collisionsDictionary.Values);
 
-                    // First unmatched list
-                    var firstUnmatchedList = new List<string>();
-
-                    // TODO Compare against matched dictionary [Logic can be improved]
-                    foreach (var movie in firstList)
-                    {
-                        // Check for a match
-                        if (!matchesDictionary.ContainsKey(movie.Title.ToLowerInvariant()))
-                        {
-                            // Add to unmatched list
-                            firstUnmatchedList.Add(movie.Path);
-                        }
-                    }
-
-                    // Check there are unmatched items
-                    if (firstUnmatchedList.Count > 0)
-                    {
-                        // Sort unmatched list
-                        firstUnmatchedList.Sort();
-
-                        // Add to unmatched collection
-                        unmatchedCollection = $"First list:{Environment.NewLine}";
-                        unmatchedCollection += string.Join(Environment.NewLine, firstUnmatchedList);
-                    }
-
-                    // Second unmatched list
-                    var secondUnmatchedList = new List<string>();
-
-                    // TODO Compare against matched dictionary [Logic can be improved]
-                    foreach (var movie in secondList)
-                    {
-                        // Check for a match
-                        if (!matchesDictionary.ContainsKey(movie.Title.ToLowerInvariant()))
-                        {
-                            // Add to unmatched list
-                            secondUnmatchedList.Add(movie.Path);
-                        }
-                    }
-
-                    // Check there are unmatched items
-                    if (secondUnmatchedList.Count > 0)
-                    {
-                        // Sort unmatched list
-                        secondUnmatchedList.Sort();
-
-                        // Add to unmatched collection
-                        unmatchedCollection += $"{(firstUnmatchedList.Count > 0 ? $"{Environment.NewLine}{Environment.NewLine}" : string.Empty)}Second list:{Environment.NewLine}";
-                        unmatchedCollection += string.Join(Environment.NewLine, secondUnmatchedList);
-                    }
-
-                    try
-                    {
-                        // Save to disk
-                        File.WriteAllText(this.saveFileDialog.FileName, unmatchedCollection);
-                    }
-                    catch (Exception exception)
-                    {
-                        // Inform user
-                        MessageBox.Show($"Error when saving to \"{Path.GetFileName(this.saveFileDialog.FileName)}\":{Environment.NewLine}{exception.Message}", "Save file error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
-                }
-                */
-
-                // Check if must process collisions
-                if (this.collisionsToolStripMenuItem.Checked)
-                {
-                    // Check for collisions
-                    if (collisionsDictionary.Count > 0)
-                    {
-                        // Set into text box 
-                        this.collisionsRichTextBox.Text = string.Join($"{Environment.NewLine}{Environment.NewLine}", collisionsDictionary.Values);
-
-                        // Update count in tab
-                        this.collisionsTabPage.Text = $"Collisions ({collisionsDictionary.Count})";
-                    }
+                    // Update count in tab
+                    this.collisionsTabPage.Text = $"Collisions ({collisionsDictionary.Count})";
                 }
             }
 
