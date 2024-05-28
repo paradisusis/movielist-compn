@@ -73,6 +73,22 @@ namespace MovieListCompn
         }
 
         /// <summary>
+        /// Resets the tab pages.
+        /// </summary>
+        private void ResetTabPages()
+        {
+            // Reset tab text
+            this.matchesTabPage.Text = "Matches";
+            this.unmatchedTabPage.Text = "Unmatched";
+            this.collisionsTabPage.Text = "Collisions";
+
+            // Reset text boxes
+            this.matchesRichTextBox.ResetText();
+            this.unmatchedRichTextBox.ResetText();
+            this.collisionsRichTextBox.ResetText();
+        }
+
+        /// <summary>
         /// Handles the process button click.
         /// </summary>
         /// <param name="sender">Sender object.</param>
@@ -107,9 +123,7 @@ namespace MovieListCompn
             }
 
             // Reset tab pages
-            this.matchesTabPage.Text = "Matches";
-            this.unmatchedTabPage.Text = "Unmatched";
-            this.collisionsTabPage.Text = "Collisions";
+            this.ResetTabPages();
 
             // Advise and disable
             this.statusValueToolStripStatusLabel.Text = "processing...";
