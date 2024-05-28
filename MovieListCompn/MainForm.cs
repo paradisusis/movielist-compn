@@ -106,6 +106,11 @@ namespace MovieListCompn
                 return;
             }
 
+            // Reset tab pages
+            this.matchesTabPage.Text = "Matches";
+            this.unmatchedTabPage.Text = "Unmatched";
+            this.collisionsTabPage.Text = "Collisions";
+
             // Advise and disable
             this.statusValueToolStripStatusLabel.Text = "processing...";
             this.processButton.Enabled = false;
@@ -368,7 +373,7 @@ namespace MovieListCompn
                     this.matchesRichTextBox.Text = string.Join($"{Environment.NewLine}{Environment.NewLine}", matchesDictionary.Values);
 
                     // Update count in tab
-                    this.collisionsTabPage.Text = $"Matches ({matchesDictionary.Count})";
+                    this.matchesTabPage.Text = $"Matches ({matchesDictionary.Count})";
                 }
 
                 /*// Empty file name
@@ -456,7 +461,7 @@ namespace MovieListCompn
                     this.unmatchedRichTextBox.Text = unmatchedCollection;
 
                     // Update count in tab
-                    this.collisionsTabPage.Text = $"Unmatched ({unmatchedTotal})";
+                    this.unmatchedTabPage.Text = $"Unmatched ({unmatchedTotal})";
                 }
 
                 /*// Empty file name
