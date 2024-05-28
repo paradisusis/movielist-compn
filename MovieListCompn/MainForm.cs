@@ -63,6 +63,16 @@ namespace MovieListCompn
         }
 
         /// <summary>
+        /// Handles the save tool strip menu item click.
+        /// </summary>
+        /// <param name="sender">Sender object.</param>
+        /// <param name="e">Event arguments.</param>
+        private void OnSaveToolStripMenuItemClick(object sender, EventArgs e)
+        {
+
+        }
+
+        /// <summary>
         /// Handles the process button click.
         /// </summary>
         /// <param name="sender">Sender object.</param>
@@ -90,7 +100,7 @@ namespace MovieListCompn
             }
 
             // If nothing must be processed, exit
-            if ((this.firstListTextBox.Text == this.secondListTextBox.Text) || (!this.matchesToolStripMenuItem.Checked && !this.unmatchedToolStripMenuItem.Checked))
+            if ((this.firstListTextBox.Text == this.secondListTextBox.Text) || (!this.matchesToolStripMenuItem.Checked && !this.unmatchedToolStripMenuItem.Checked && !this.collisionsToolStripMenuItem.Checked))
             {
                 // Halt flow
                 return;
@@ -127,7 +137,25 @@ namespace MovieListCompn
                 secondList.Add(detector.GetInfo(moviePath));
             }
 
-            /* Post processing */
+            /** Pre-processing **/
+
+            /* Folding */
+
+            // TODO Fold first list [Single pass]
+            for (int i = 0; i < firstList.Count; i++)
+            {
+                // Fold current foreign characters to ascii 
+                firstList[i].Title = firstList[i].Title.FoldToASCII();
+            }
+
+            // TODO Fold second list [Single pass]
+            for (int i = 0; i < secondList.Count; i++)
+            {
+                // Fold current foreign characters to ascii 
+                secondList[i].Title = secondList[i].Title.FoldToASCII();
+            }
+
+            /* Prepended year */
 
             // TODO Remove prepended year from first list [DRY, function]
             for (int i = 0; i < firstList.Count; i++)
@@ -163,6 +191,83 @@ namespace MovieListCompn
                 }
             }
 
+            /* List caching */
+
+            // Set first list cache
+            List<string> firstListCache = new List<string>(firstList.Select(x => x.Title).ToList<string>());
+
+            // Set second list cache
+            List<string> secondListCache = new List<string>(secondList.Select(x => x.Title).ToList<string>());
+
+            /* Lowercase all titles */
+
+            // First list
+            foreach (var item in firstList)
+            {
+                // Set lowercase title
+                item.Title = item.Title.ToLowerInvariant();
+            }
+
+            // Second list
+            foreach (var item in secondList)
+            {
+                // Set lowercase title
+                item.Title = item.Title.ToLowerInvariant();
+            }
+
+            /* Remove function words */
+
+            // Set the function words list
+            List<string> functionWordsList = new List<string>() { "a", "an", "the", "this", "that", "these", "those", "my", "your", "their", "our", "some", "many", "few", "all", "and", "but", "or", "so", "because", "although", "in", "of", "on", "with", "by", "at", "over", "under", "he", "she", "it", "they", "we", "you", "me", "him", "her", "is", "am", "are", "was", "were", "has", "have", "had", "can", "could", "may", "might", "shall", "should", "will", "would", "must", "who", "what", "when", "where", "why", "how" };
+
+            // Remove function words on first list
+            for (int i = 0; i < firstList.Count; i++)
+            {
+                // Set title words list
+                var titleWords = new List<string>(firstList[i].Title.Split(' '));
+
+                // Check there are 2+ words 
+                if (titleWords.Count < 2)
+                {
+                    // Skip iteration
+                    continue;
+                }
+
+                // TODO Remove function words [Can improve logic]
+                var tempTitleWords = titleWords.Except(functionWordsList);
+
+                // Check there are words left
+                if (tempTitleWords.Count() > 1)
+                {
+                    // Update title
+                    firstList[i].Title = string.Join(" ", tempTitleWords);
+                }
+            }
+
+            // Remove function words on second list
+            for (int i = 0; i < secondList.Count; i++)
+            {
+                // Set title words list
+                var titleWords = new List<string>(secondList[i].Title.Split(' '));
+
+                // Check there are 2+ words 
+                if (titleWords.Count < 2)
+                {
+                    // Skip iteration
+                    continue;
+                }
+
+                // TODO Remove function words [Can improve logic]
+                var tempTitleWords = titleWords.Except(functionWordsList);
+
+                // Check there are words left
+                if (tempTitleWords.Count() > 1)
+                {
+                    // Update title
+                    secondList[i].Title = string.Join(" ", tempTitleWords);
+                }
+            }
+
             //#
             /*var movieTitles = new List<string>();
 
@@ -182,7 +287,37 @@ namespace MovieListCompn
 
             File.WriteAllLines("secondList.txt", movieTitles);*/
 
-            /* Set matches */
+            /* Set title cache dictionaries */
+
+            // Set first title cache
+            var firstTitleCacheDictionary = new Dictionary<string, string>();
+
+            // Iterate first list
+            for (int i = 0; i < firstList.Count; i++)
+            {
+                // Check if it's not present
+                if (!firstTitleCacheDictionary.ContainsKey(firstList[i].Title))
+                {
+                    // Add title to cache
+                    firstTitleCacheDictionary.Add(firstList[i].Title, firstListCache[i]);
+                }
+            }
+
+            /*// Set second title cache
+            var secondTitleCacheDictionary = new Dictionary<string, string>();
+
+            // Iterate second list
+            for (int i = 0; i < secondList.Count; i++)
+            {
+                // Check if it's not present
+                if (!secondTitleCacheDictionary.ContainsKey(secondList[i].Title))
+                {
+                    // Add title to cache
+                    secondTitleCacheDictionary.Add(secondList[i].Title, secondListCache[i]);
+                }
+            }*/
+
+            /* Set matches collection */
 
             // Collect the matches
             var matchesCollection = firstList.Where(y => secondList.Any(z => z.Title.ToLowerInvariant() == y.Title.ToLowerInvariant()));
@@ -190,10 +325,13 @@ namespace MovieListCompn
             // The matches (sorted) dictionary
             var matchesDictionary = new SortedDictionary<string, string>();
 
+            // The collisions (sorted) dictionary
+            var collisionsDictionary = new SortedDictionary<string, string>();
+
             // Populate matches dictionary
             foreach (var movieMatch in matchesCollection)
             {
-                // Lowercase title
+                // TODO Lowercase title [Already lowercase from latest change, improve]
                 string titleLc = movieMatch.Title.ToLowerInvariant();
 
                 // Collect first list matches
@@ -202,18 +340,38 @@ namespace MovieListCompn
                 // Collect second list matches
                 var secondListMatches = secondList.Where(x => x.Title.ToLower() == titleLc);
 
+                // Movie string
+                string movieString = $"{firstTitleCacheDictionary[movieMatch.Title]}{Environment.NewLine}First list:{Environment.NewLine}{string.Join(Environment.NewLine, firstListMatches.Select(f => f.Path).ToList())}{Environment.NewLine}Second list:{Environment.NewLine}{string.Join(Environment.NewLine, secondListMatches.Select(s => s.Path).ToList())}";
+
                 // Check it's unique
                 if (!matchesDictionary.ContainsKey(titleLc))
                 {
                     // Add current movie to dictionary
-                    matchesDictionary.Add(movieMatch.Title.ToLowerInvariant(), $"{movieMatch.Title}{Environment.NewLine}First list:{Environment.NewLine}{string.Join(Environment.NewLine, firstListMatches.Select(f => f.Path).ToList())}{Environment.NewLine}Second list:{Environment.NewLine}{string.Join(Environment.NewLine, secondListMatches.Select(s => s.Path).ToList())}");
+                    matchesDictionary.Add(titleLc, movieString);
+
+                    // Check for collisions
+                    if (firstListMatches.Count() > 1 || secondListMatches.Count() > 1)
+                    {
+                        // Add to collisions dictionary
+                        collisionsDictionary.Add(firstTitleCacheDictionary[movieMatch.Title], movieString);
+                    }
                 }
             }
 
             // Check if must process matches
             if (this.matchesToolStripMenuItem.Checked)
             {
-                // Empty file name
+                // Check for matches
+                if (matchesDictionary.Count > 0)
+                {
+                    // Set into text box 
+                    this.matchesRichTextBox.Text = string.Join($"{Environment.NewLine}{Environment.NewLine}", matchesDictionary.Values);
+
+                    // Update count in tab
+                    this.collisionsTabPage.Text = $"Matches ({matchesDictionary.Count})";
+                }
+
+                /*// Empty file name
                 this.saveFileDialog.FileName = "MovieList-matches.txt";
 
                 // Open save file dialog
@@ -229,13 +387,79 @@ namespace MovieListCompn
                         // Inform user
                         MessageBox.Show($"Error when saving to \"{Path.GetFileName(this.saveFileDialog.FileName)}\":{Environment.NewLine}{exception.Message}", "Save file error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
-                }
+                }*/
             }
 
             // Check if must process unmatched
             if (this.unmatchedToolStripMenuItem.Checked)
             {
-                // Empty file name
+                // Unmatched collection
+                string unmatchedCollection = string.Empty;
+
+                // First unmatched list
+                var firstUnmatchedList = new List<string>();
+
+                // TODO Compare against matched dictionary [Logic can be improved]
+                foreach (var movie in firstList)
+                {
+                    // Check for a match
+                    if (!matchesDictionary.ContainsKey(movie.Title.ToLowerInvariant()))
+                    {
+                        // Add to unmatched list
+                        firstUnmatchedList.Add(movie.Path);
+                    }
+                }
+
+                // Check there are unmatched items
+                if (firstUnmatchedList.Count > 0)
+                {
+                    // Sort unmatched list
+                    firstUnmatchedList.Sort();
+
+                    // Add to unmatched collection
+                    unmatchedCollection = $"First list:{Environment.NewLine}";
+                    unmatchedCollection += string.Join(Environment.NewLine, firstUnmatchedList);
+                }
+
+                // Second unmatched list
+                var secondUnmatchedList = new List<string>();
+
+                // TODO Compare against matched dictionary [Logic can be improved]
+                foreach (var movie in secondList)
+                {
+                    // Check for a match
+                    if (!matchesDictionary.ContainsKey(movie.Title.ToLowerInvariant()))
+                    {
+                        // Add to unmatched list
+                        secondUnmatchedList.Add(movie.Path);
+                    }
+                }
+
+                // Check there are unmatched items
+                if (secondUnmatchedList.Count > 0)
+                {
+                    // Sort unmatched list
+                    secondUnmatchedList.Sort();
+
+                    // Add to unmatched collection
+                    unmatchedCollection += $"{(firstUnmatchedList.Count > 0 ? $"{Environment.NewLine}{Environment.NewLine}" : string.Empty)}Second list:{Environment.NewLine}";
+                    unmatchedCollection += string.Join(Environment.NewLine, secondUnmatchedList);
+                }
+
+                // Set unmatched total
+                int unmatchedTotal = firstUnmatchedList.Count + secondUnmatchedList.Count;
+
+                // TODO Check there are unmatched items to display [Sum in variable, DRY]
+                if (unmatchedTotal > 0)
+                {
+                    // Set into text box
+                    this.unmatchedRichTextBox.Text = unmatchedCollection;
+
+                    // Update count in tab
+                    this.collisionsTabPage.Text = $"Unmatched ({unmatchedTotal})";
+                }
+
+                /*// Empty file name
                 this.saveFileDialog.FileName = "MovieList-unmatched.txt";
 
                 // Open save file dialog
@@ -303,6 +527,21 @@ namespace MovieListCompn
                     {
                         // Inform user
                         MessageBox.Show($"Error when saving to \"{Path.GetFileName(this.saveFileDialog.FileName)}\":{Environment.NewLine}{exception.Message}", "Save file error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+                */
+
+                // Check if must process collisions
+                if (this.collisionsToolStripMenuItem.Checked)
+                {
+                    // Check for collisions
+                    if (collisionsDictionary.Count > 0)
+                    {
+                        // Set into text box 
+                        this.collisionsRichTextBox.Text = string.Join($"{Environment.NewLine}{Environment.NewLine}", collisionsDictionary.Values);
+
+                        // Update count in tab
+                        this.collisionsTabPage.Text = $"Collisions ({collisionsDictionary.Count})";
                     }
                 }
             }
