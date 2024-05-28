@@ -55,6 +55,9 @@ namespace MovieListCompn
             this.firstListTextBox.Clear();
             this.secondListTextBox.Clear();
 
+            // Reset tabs
+            this.ResetTabPages();
+
             // Reset status
             this.statusValueToolStripStatusLabel.Text = "collection";
 
