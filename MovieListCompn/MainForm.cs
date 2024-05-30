@@ -13,6 +13,7 @@ namespace MovieListCompn
     using System.IO;
     using System.Linq;
     using System.Reflection;
+    using System.Text;
     using System.Windows.Forms;
     using MovieFileLibrary;
     using ParadisusIs;
@@ -218,6 +219,13 @@ namespace MovieListCompn
             // Populate first list
             foreach (var moviePath in File.ReadAllLines(this.firstListTextBox.Text))
             {
+                // Check for empty
+                if (moviePath.Length == 0)
+                {
+                    // Skip iteration
+                    continue;
+                }
+
                 // Add movie file
                 firstList.Add(detector.GetInfo(moviePath));
             }
@@ -225,26 +233,57 @@ namespace MovieListCompn
             // Populate second list
             foreach (var moviePath in File.ReadAllLines(this.secondListTextBox.Text))
             {
+                // Check for empty
+                if (moviePath.Length == 0)
+                {
+                    // Skip iteration
+                    continue;
+                }
+
                 // Add movie file
                 secondList.Add(detector.GetInfo(moviePath));
             }
 
             /** Pre-processing **/
 
-            /* Folding */
+            /* List caching */
 
-            // TODO Fold first list [Single pass]
+            // Set first list cache
+            List<string> firstListCache = new List<string>(firstList.Select(x => x.Title).ToList<string>());
+
+            // Set second list cache
+            List<string> secondListCache = new List<string>(secondList.Select(x => x.Title).ToList<string>());
+
+            /* Folding and stripping punctuation */
+
+            // TODO Process first list [Single pass]
             for (int i = 0; i < firstList.Count; i++)
             {
-                // Fold current foreign characters to ascii 
-                firstList[i].Title = firstList[i].Title.FoldToASCII();
+                // Fold current foreign characters to ascii and strip punctuation
+                firstList[i].Title = new string(firstList[i].Title.FoldToASCII().Where(c => !char.IsPunctuation(c)).ToArray());
+
+                // TODO DRY it with a function
+                string tempTitle = firstList[i].Title;
+                char[] tempTitlePunctuation = tempTitle.Where(Char.IsPunctuation).Distinct().ToArray();
+                IEnumerable<string> tempTitleWords = tempTitle.Split(new char[0], StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim(tempTitlePunctuation));
+
+                // Set processed string into title
+                firstList[i].Title = string.Join(" ", tempTitleWords);
             }
 
-            // TODO Fold second list [Single pass]
+            // TODO Process second list [Single pass]
             for (int i = 0; i < secondList.Count; i++)
             {
-                // Fold current foreign characters to ascii 
-                secondList[i].Title = secondList[i].Title.FoldToASCII();
+                // Fold current foreign characters to ascii and strip punctuation
+                secondList[i].Title = new string(secondList[i].Title.FoldToASCII().Where(c => !char.IsPunctuation(c)).ToArray());
+
+                // TODO DRY it with a function
+                string tempTitle = secondList[i].Title;
+                char[] tempTitlePunctuation = tempTitle.Where(Char.IsPunctuation).Distinct().ToArray();
+                IEnumerable<string> tempTitleWords = tempTitle.Split(new char[0], StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim(tempTitlePunctuation));
+
+                // Set processed string into title
+                secondList[i].Title = string.Join(" ", tempTitleWords);
             }
 
             /* Prepended year */
@@ -282,14 +321,6 @@ namespace MovieListCompn
                     secondList[i].Title = string.Join(" ", titleWords);
                 }
             }
-
-            /* List caching */
-
-            // Set first list cache
-            List<string> firstListCache = new List<string>(firstList.Select(x => x.Title).ToList<string>());
-
-            // Set second list cache
-            List<string> secondListCache = new List<string>(secondList.Select(x => x.Title).ToList<string>());
 
             /* Lowercase all titles */
 
