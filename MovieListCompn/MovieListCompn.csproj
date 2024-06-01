@@ -49,6 +49,9 @@
     <Reference Include="MovieFileLibrary">
       <HintPath>packages\MovieFileLibrary.3.0.0\lib\net48\MovieFileLibrary.dll</HintPath>
     </Reference>
+    <Reference Include="FuzzySharp">
+      <HintPath>packages\FuzzySharp.2.0.2\lib\net461\FuzzySharp.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AboutForm.cs" />

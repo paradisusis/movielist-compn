@@ -15,6 +15,11 @@ namespace MovieListCompn
     using System.Reflection;
     using System.Text;
     using System.Windows.Forms;
+    using FuzzySharp;
+    using FuzzySharp.SimilarityRatio;
+    using FuzzySharp.SimilarityRatio.Scorer;
+    using FuzzySharp.SimilarityRatio.Scorer.Composite;
+    using FuzzySharp.SimilarityRatio.Scorer.StrategySensitive;
     using MovieFileLibrary;
     using ParadisusIs;
 
@@ -43,6 +48,9 @@ namespace MovieListCompn
 
             // Set associated icon 
             this.associatedIcon = this.Icon;
+
+            // Add combo box items
+            this.fuzzyAlgorithmComboBox.Items.AddRange(new[] { "Default ratio", "Partial ratio", "Token set", "Partial token set", "Token sort", "Partial token sort", "Token abbreviation", "Partial token abbreviation", "Weighted" });
         }
 
         /// <summary>
@@ -440,10 +448,7 @@ namespace MovieListCompn
                 }
             }*/
 
-            /* Set matches collection */
-
-            // Collect the matches
-            var matchesCollection = firstList.Where(y => secondList.Any(z => z.Title.ToLowerInvariant() == y.Title.ToLowerInvariant()));
+            /** Add matches by direct title or fuzzy **/
 
             // The matches (sorted) dictionary
             var matchesDictionary = new SortedDictionary<string, string>();
@@ -451,37 +456,186 @@ namespace MovieListCompn
             // The collisions (sorted) dictionary
             var collisionsDictionary = new SortedDictionary<string, string>();
 
-            // Populate matches dictionary
-            foreach (var movieMatch in matchesCollection)
+            // Check if by drect or fuzzy match (fuzzy-first)
+            if (this.fuzzyMatchesCheckBox.Checked)
             {
-                // TODO Lowercase title [Already lowercase from latest change, improve]
-                string titleLc = movieMatch.Title.ToLowerInvariant();
+                /* Set fuzzy matches collection */
 
-                // Collect first list matches
-                var firstListMatches = firstList.Where(x => x.Title.ToLower() == titleLc);
+                // Declare the default scorer
+                IRatioScorer scorer = null;
 
-                // Collect second list matches
-                var secondListMatches = secondList.Where(x => x.Title.ToLower() == titleLc);
-
-                // Movie string
-                string movieString = $"{firstTitleCacheDictionary[movieMatch.Title]}{Environment.NewLine}First list:{Environment.NewLine}{string.Join(Environment.NewLine, firstListMatches.Select(f => f.Path).ToList())}{Environment.NewLine}Second list:{Environment.NewLine}{string.Join(Environment.NewLine, secondListMatches.Select(s => s.Path).ToList())}";
-
-                // Check it's unique
-                if (!matchesDictionary.ContainsKey(titleLc))
+                // TODO Set the scorer can improve logic
+                switch (this.fuzzyAlgorithmComboBox.Text)
                 {
-                    // Add current movie to dictionary
-                    matchesDictionary.Add(titleLc, movieString);
+                    // Default ratio
+                    case "Default ratio":
+                        scorer = ScorerCache.Get<DefaultRatioScorer>();
+                        break;
 
-                    // Check for collisions
-                    if (firstListMatches.Count() > 1 || secondListMatches.Count() > 1)
+                    // Partial ratio
+                    case "Partial ratio":
+                        scorer = ScorerCache.Get<PartialRatioScorer>();
+                        break;
+
+                    // Token set
+                    case "Token set":
+                        scorer = ScorerCache.Get<TokenSetScorer>();
+                        break;
+
+                    // Partial token set
+                    case "Partial token set":
+                        scorer = ScorerCache.Get<PartialTokenSetScorer>();
+                        break;
+
+                    // Token sort
+                    case "Token sort":
+                        scorer = ScorerCache.Get<TokenSortScorer>();
+                        break;
+
+                    // Partial token sort
+                    case "Partial token sort":
+                        scorer = ScorerCache.Get<PartialTokenSortScorer>();
+                        break;
+
+                    // Token abbreviation
+                    case "Token abbreviation":
+                        scorer = ScorerCache.Get<TokenAbbreviationScorer>();
+                        break;
+
+                    // Partial token abbreviation
+                    case "Partial token abbreviation":
+                        scorer = ScorerCache.Get<PartialTokenAbbreviationScorer>();
+                        break;
+
+                    // Weighted
+                    case "Weighted":
+                        scorer = ScorerCache.Get<WeightedRatioScorer>();
+                        break;
+                }
+
+                // Set cutoff
+                int cutoff = (int)this.fuzzyAlgorithmNumericUpDown.Value;
+
+                // Set first list titles
+                List<string> firstListTitles = firstList.Select(x => x.Title).ToList<string>();
+
+                // Set second list titles
+                List<string> secondListTitles = secondList.Select(x => x.Title).ToList<string>();
+
+                // The fuzzy matches (sorted) dictionary for the first list
+                var fuzzyMatchesFirstListDictionary = new SortedDictionary<string, List<MovieFile>>();
+
+                // The fuzzy matches (sorted) dictionary for the second list
+                var fuzzyMatchesSecondListDictionary = new SortedDictionary<string, List<MovieFile>>();
+
+                // Collect the fuzzy matches for the first list
+                foreach (var item in firstList)
+                {
+                    // Get all fuzzy matches for the current item
+                    var itemFuzzyMatches = FuzzySharp.Process.ExtractAll(item.Title, secondListTitles, null, scorer, cutoff);
+
+                    // Iterate fuzzy matches
+                    foreach (var fuzzyItem in itemFuzzyMatches)
                     {
-                        // Add to collisions dictionary
-                        collisionsDictionary.Add(firstTitleCacheDictionary[movieMatch.Title], movieString);
+                        // Check if must add
+                        if (!fuzzyMatchesFirstListDictionary.ContainsKey(item.Title))
+                        {
+                            // Add into fuzzy matches first list dictionary
+                            fuzzyMatchesFirstListDictionary.Add(item.Title, new List<MovieFile>());
+                        }
+
+                        // Populate with current match
+                        fuzzyMatchesFirstListDictionary[item.Title].Add(secondList[fuzzyItem.Index]);
+                    }
+                }
+
+                // Collect the fuzzy matches for the second list
+                foreach (var item in secondList)
+                {
+                    // Get all fuzzy matches for the current item
+                    var itemFuzzyMatches = FuzzySharp.Process.ExtractAll(item.Title, firstListTitles, null, scorer, cutoff);
+
+                    // Iterate fuzzy matches
+                    foreach (var fuzzyItem in itemFuzzyMatches)
+                    {
+                        // Check if must add
+                        if (!fuzzyMatchesSecondListDictionary.ContainsKey(item.Title))
+                        {
+                            // Add into fuzzy matches first list dictionary
+                            fuzzyMatchesSecondListDictionary.Add(item.Title, new List<MovieFile>());
+                        }
+
+                        // Populate with current match
+                        fuzzyMatchesSecondListDictionary[item.Title].Add(firstList[fuzzyItem.Index]);
+                    }
+                }
+
+                /* Add to matches dictionary */
+
+                // Iterate first list dictionary keys
+                foreach (var currentTitle in fuzzyMatchesFirstListDictionary.Keys)
+                {
+                    // Check if second list dictionary contains it
+                    if (fuzzyMatchesSecondListDictionary.ContainsKey(currentTitle))
+                    {
+                        // Movie string
+                        string movieString = $"{firstTitleCacheDictionary[currentTitle]}{Environment.NewLine}First list:{Environment.NewLine}{string.Join(Environment.NewLine, fuzzyMatchesFirstListDictionary[currentTitle].Select(f => f.Path).ToList().Distinct())}{Environment.NewLine}Second list:{Environment.NewLine}{string.Join(Environment.NewLine, fuzzyMatchesSecondListDictionary[currentTitle].Select(s => s.Path).ToList().Distinct())}";
+
+                        // Check it's unique
+                        if (!matchesDictionary.ContainsKey(currentTitle))
+                        {
+                            // Add current movie to dictionary
+                            matchesDictionary.Add(currentTitle, movieString);
+
+                            // Check for collisions
+                            if (fuzzyMatchesFirstListDictionary[currentTitle].Count() > 1 || fuzzyMatchesSecondListDictionary[currentTitle].Count() > 1)
+                            {
+                                // Add to collisions dictionary
+                                collisionsDictionary.Add(firstTitleCacheDictionary[currentTitle], movieString);
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                /* Set matches collection */
+
+                // Collect the matches
+                var matchesCollection = firstList.Where(y => secondList.Any(z => z.Title == y.Title));
+
+                // Populate matches dictionary
+                foreach (var movieMatch in matchesCollection)
+                {
+                    // TODO 
+                    string currentTitle = movieMatch.Title;
+
+                    // Collect first list matches
+                    var firstListMatches = firstList.Where(x => x.Title == currentTitle);
+
+                    // Collect second list matches
+                    var secondListMatches = secondList.Where(x => x.Title == currentTitle);
+
+                    // Movie string
+                    string movieString = $"{firstTitleCacheDictionary[movieMatch.Title]}{Environment.NewLine}First list:{Environment.NewLine}{string.Join(Environment.NewLine, firstListMatches.Select(f => f.Path).ToList())}{Environment.NewLine}Second list:{Environment.NewLine}{string.Join(Environment.NewLine, secondListMatches.Select(s => s.Path).ToList())}";
+
+                    // Check it's unique
+                    if (!matchesDictionary.ContainsKey(currentTitle))
+                    {
+                        // Add current movie to dictionary
+                        matchesDictionary.Add(currentTitle, movieString);
+
+                        // Check for collisions
+                        if (firstListMatches.Count() > 1 || secondListMatches.Count() > 1)
+                        {
+                            // Add to collisions dictionary
+                            collisionsDictionary.Add(firstTitleCacheDictionary[movieMatch.Title], movieString);
+                        }
                     }
                 }
             }
 
-            // Check if must process matches
+            // Check if must show matches
             if (this.matchesToolStripMenuItem.Checked)
             {
                 // Check for matches
@@ -603,6 +757,20 @@ namespace MovieListCompn
         }
 
         /// <summary>
+        /// Handles the fuzzy matches check box checked changed.
+        /// </summary>
+        /// <param name="sender">Sender object.</param>
+        /// <param name="e">Event arguments.</param>
+        private void OnFuzzyMatchesCheckBoxCheckedChanged(object sender, EventArgs e)
+        {
+            // Toggle fuzzy algorithm
+            this.fuzzyAlgorithmComboBox.Enabled = this.fuzzyMatchesCheckBox.Checked;
+
+            // Toggle fuzzy algorithm percentage
+            this.fuzzyAlgorithmNumericUpDown.Enabled = this.fuzzyMatchesCheckBox.Checked;
+        }
+
+        /// <summary>
         /// Handles the first list browse button click.
         /// </summary>
         /// <param name="sender">Sender object.</param>
@@ -663,7 +831,7 @@ namespace MovieListCompn
         private void OnMoreReleasesParadisusisToolStripMenuItemClick(object sender, EventArgs e)
         {
             // Open our site's releases portal
-            Process.Start("https://paradisus.is/releases/");
+            System.Diagnostics.Process.Start("https://paradisus.is/releases/");
         }
 
         /// <summary>
@@ -674,7 +842,7 @@ namespace MovieListCompn
         private void OnOriginalThreadDonationCodercomToolStripMenuItemClick(object sender, EventArgs e)
         {
             // Open original thread
-            Process.Start("https://www.donationcoder.com/forum/index.php?topic=54168.0");
+            System.Diagnostics.Process.Start("https://www.donationcoder.com/forum/index.php?topic=54168.0");
         }
 
         /// <summary>
@@ -685,7 +853,7 @@ namespace MovieListCompn
         private void OnSourceCodeGithubcomToolStripMenuItemClick(object sender, EventArgs e)
         {
             // Open GitHub repository
-            Process.Start("https://github.com/paradisusis/movielist-compn");
+            System.Diagnostics.Process.Start("https://github.com/paradisusis/movielist-compn");
         }
 
         /// <summary>
@@ -743,7 +911,8 @@ namespace MovieListCompn
         /// <param name="e">Event arguments.</param>
         private void OnMainFormLoad(object sender, EventArgs e)
         {
-
+            // TODO Select default ratio [SettingsData]
+            this.fuzzyAlgorithmComboBox.SelectedIndex = 0;
         }
 
         /// <summary>

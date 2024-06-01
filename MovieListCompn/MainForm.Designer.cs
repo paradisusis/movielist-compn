@@ -74,6 +74,10 @@ namespace MovieListCompn
         	this.unmatchedRichTextBox = new System.Windows.Forms.RichTextBox();
         	this.collisionsTabPage = new System.Windows.Forms.TabPage();
         	this.collisionsRichTextBox = new System.Windows.Forms.RichTextBox();
+        	this.fuzzyMatchesCheckBox = new System.Windows.Forms.CheckBox();
+        	this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
+        	this.fuzzyAlgorithmComboBox = new System.Windows.Forms.ComboBox();
+        	this.fuzzyAlgorithmNumericUpDown = new System.Windows.Forms.NumericUpDown();
         	this.saveFileDialog = new System.Windows.Forms.SaveFileDialog();
         	this.mainMenuStrip.SuspendLayout();
         	this.mainStatusStrip.SuspendLayout();
@@ -82,6 +86,8 @@ namespace MovieListCompn
         	this.matchesTabPage.SuspendLayout();
         	this.unmatchedTabPage.SuspendLayout();
         	this.collisionsTabPage.SuspendLayout();
+        	this.tableLayoutPanel1.SuspendLayout();
+        	((System.ComponentModel.ISupportInitialize)(this.fuzzyAlgorithmNumericUpDown)).BeginInit();
         	this.SuspendLayout();
         	// 
         	// openFileDialog
@@ -291,7 +297,7 @@ namespace MovieListCompn
         	this.mainStatusStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
         	        	        	this.statusTextToolStripStatusLabel,
         	        	        	this.statusValueToolStripStatusLabel});
-        	this.mainStatusStrip.Location = new System.Drawing.Point(0, 440);
+        	this.mainStatusStrip.Location = new System.Drawing.Point(0, 490);
         	this.mainStatusStrip.Name = "mainStatusStrip";
         	this.mainStatusStrip.Size = new System.Drawing.Size(384, 22);
         	this.mainStatusStrip.SizingGrip = false;
@@ -318,22 +324,26 @@ namespace MovieListCompn
         	this.mainTableLayoutPanel.Controls.Add(this.firstListLabel, 0, 0);
         	this.mainTableLayoutPanel.Controls.Add(this.secondListLabel, 0, 2);
         	this.mainTableLayoutPanel.Controls.Add(this.firstListBrowseButton, 1, 1);
-        	this.mainTableLayoutPanel.Controls.Add(this.processButton, 0, 5);
+        	this.mainTableLayoutPanel.Controls.Add(this.processButton, 0, 7);
         	this.mainTableLayoutPanel.Controls.Add(this.secondListBrowseButton, 1, 3);
         	this.mainTableLayoutPanel.Controls.Add(this.firstListTextBox, 0, 1);
         	this.mainTableLayoutPanel.Controls.Add(this.secondListTextBox, 0, 3);
         	this.mainTableLayoutPanel.Controls.Add(this.mainTabControl, 0, 4);
+        	this.mainTableLayoutPanel.Controls.Add(this.fuzzyMatchesCheckBox, 0, 5);
+        	this.mainTableLayoutPanel.Controls.Add(this.tableLayoutPanel1, 0, 6);
         	this.mainTableLayoutPanel.Dock = System.Windows.Forms.DockStyle.Fill;
         	this.mainTableLayoutPanel.Location = new System.Drawing.Point(0, 24);
         	this.mainTableLayoutPanel.Name = "mainTableLayoutPanel";
-        	this.mainTableLayoutPanel.RowCount = 6;
+        	this.mainTableLayoutPanel.RowCount = 8;
         	this.mainTableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25F));
         	this.mainTableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 35F));
         	this.mainTableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25F));
         	this.mainTableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 35F));
         	this.mainTableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
+        	this.mainTableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25F));
+        	this.mainTableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 35F));
         	this.mainTableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 40F));
-        	this.mainTableLayoutPanel.Size = new System.Drawing.Size(384, 416);
+        	this.mainTableLayoutPanel.Size = new System.Drawing.Size(384, 466);
         	this.mainTableLayoutPanel.TabIndex = 52;
         	// 
         	// firstListLabel
@@ -377,7 +387,7 @@ namespace MovieListCompn
         	this.processButton.Dock = System.Windows.Forms.DockStyle.Fill;
         	this.processButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold);
         	this.processButton.ForeColor = System.Drawing.Color.Red;
-        	this.processButton.Location = new System.Drawing.Point(3, 379);
+        	this.processButton.Location = new System.Drawing.Point(3, 429);
         	this.processButton.Name = "processButton";
         	this.processButton.Size = new System.Drawing.Size(378, 34);
         	this.processButton.TabIndex = 0;
@@ -424,7 +434,7 @@ namespace MovieListCompn
         	this.mainTabControl.Location = new System.Drawing.Point(3, 123);
         	this.mainTabControl.Name = "mainTabControl";
         	this.mainTabControl.SelectedIndex = 0;
-        	this.mainTabControl.Size = new System.Drawing.Size(378, 250);
+        	this.mainTabControl.Size = new System.Drawing.Size(378, 240);
         	this.mainTabControl.TabIndex = 5;
         	// 
         	// matchesTabPage
@@ -433,7 +443,7 @@ namespace MovieListCompn
         	this.matchesTabPage.Location = new System.Drawing.Point(4, 22);
         	this.matchesTabPage.Name = "matchesTabPage";
         	this.matchesTabPage.Padding = new System.Windows.Forms.Padding(3);
-        	this.matchesTabPage.Size = new System.Drawing.Size(370, 224);
+        	this.matchesTabPage.Size = new System.Drawing.Size(370, 214);
         	this.matchesTabPage.TabIndex = 0;
         	this.matchesTabPage.Text = "Matches";
         	this.matchesTabPage.UseVisualStyleBackColor = true;
@@ -443,7 +453,7 @@ namespace MovieListCompn
         	this.matchesRichTextBox.Dock = System.Windows.Forms.DockStyle.Fill;
         	this.matchesRichTextBox.Location = new System.Drawing.Point(3, 3);
         	this.matchesRichTextBox.Name = "matchesRichTextBox";
-        	this.matchesRichTextBox.Size = new System.Drawing.Size(364, 218);
+        	this.matchesRichTextBox.Size = new System.Drawing.Size(364, 208);
         	this.matchesRichTextBox.TabIndex = 0;
         	this.matchesRichTextBox.Text = "";
         	// 
@@ -453,7 +463,7 @@ namespace MovieListCompn
         	this.unmatchedTabPage.Location = new System.Drawing.Point(4, 22);
         	this.unmatchedTabPage.Name = "unmatchedTabPage";
         	this.unmatchedTabPage.Padding = new System.Windows.Forms.Padding(3);
-        	this.unmatchedTabPage.Size = new System.Drawing.Size(370, 224);
+        	this.unmatchedTabPage.Size = new System.Drawing.Size(370, 214);
         	this.unmatchedTabPage.TabIndex = 1;
         	this.unmatchedTabPage.Text = "Unmatched";
         	this.unmatchedTabPage.UseVisualStyleBackColor = true;
@@ -463,7 +473,7 @@ namespace MovieListCompn
         	this.unmatchedRichTextBox.Dock = System.Windows.Forms.DockStyle.Fill;
         	this.unmatchedRichTextBox.Location = new System.Drawing.Point(3, 3);
         	this.unmatchedRichTextBox.Name = "unmatchedRichTextBox";
-        	this.unmatchedRichTextBox.Size = new System.Drawing.Size(364, 218);
+        	this.unmatchedRichTextBox.Size = new System.Drawing.Size(364, 208);
         	this.unmatchedRichTextBox.TabIndex = 0;
         	this.unmatchedRichTextBox.Text = "";
         	// 
@@ -473,7 +483,7 @@ namespace MovieListCompn
         	this.collisionsTabPage.Location = new System.Drawing.Point(4, 22);
         	this.collisionsTabPage.Name = "collisionsTabPage";
         	this.collisionsTabPage.Padding = new System.Windows.Forms.Padding(3);
-        	this.collisionsTabPage.Size = new System.Drawing.Size(370, 224);
+        	this.collisionsTabPage.Size = new System.Drawing.Size(370, 214);
         	this.collisionsTabPage.TabIndex = 2;
         	this.collisionsTabPage.Text = "Collisions";
         	this.collisionsTabPage.UseVisualStyleBackColor = true;
@@ -483,9 +493,78 @@ namespace MovieListCompn
         	this.collisionsRichTextBox.Dock = System.Windows.Forms.DockStyle.Fill;
         	this.collisionsRichTextBox.Location = new System.Drawing.Point(3, 3);
         	this.collisionsRichTextBox.Name = "collisionsRichTextBox";
-        	this.collisionsRichTextBox.Size = new System.Drawing.Size(364, 218);
+        	this.collisionsRichTextBox.Size = new System.Drawing.Size(364, 208);
         	this.collisionsRichTextBox.TabIndex = 0;
         	this.collisionsRichTextBox.Text = "";
+        	// 
+        	// fuzzyMatchesCheckBox
+        	// 
+        	this.mainTableLayoutPanel.SetColumnSpan(this.fuzzyMatchesCheckBox, 2);
+        	this.fuzzyMatchesCheckBox.Dock = System.Windows.Forms.DockStyle.Fill;
+        	this.fuzzyMatchesCheckBox.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold);
+        	this.fuzzyMatchesCheckBox.Location = new System.Drawing.Point(3, 366);
+        	this.fuzzyMatchesCheckBox.Margin = new System.Windows.Forms.Padding(3, 0, 3, 0);
+        	this.fuzzyMatchesCheckBox.Name = "fuzzyMatchesCheckBox";
+        	this.fuzzyMatchesCheckBox.Size = new System.Drawing.Size(378, 25);
+        	this.fuzzyMatchesCheckBox.TabIndex = 6;
+        	this.fuzzyMatchesCheckBox.Text = "Fuzzy matches";
+        	this.fuzzyMatchesCheckBox.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+        	this.fuzzyMatchesCheckBox.UseVisualStyleBackColor = true;
+        	this.fuzzyMatchesCheckBox.CheckedChanged += new System.EventHandler(this.OnFuzzyMatchesCheckBoxCheckedChanged);
+        	// 
+        	// tableLayoutPanel1
+        	// 
+        	this.tableLayoutPanel1.ColumnCount = 3;
+        	this.mainTableLayoutPanel.SetColumnSpan(this.tableLayoutPanel1, 2);
+        	this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 75F));
+        	this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 5F));
+        	this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 25F));
+        	this.tableLayoutPanel1.Controls.Add(this.fuzzyAlgorithmComboBox, 0, 0);
+        	this.tableLayoutPanel1.Controls.Add(this.fuzzyAlgorithmNumericUpDown, 2, 0);
+        	this.tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
+        	this.tableLayoutPanel1.Location = new System.Drawing.Point(3, 394);
+        	this.tableLayoutPanel1.Name = "tableLayoutPanel1";
+        	this.tableLayoutPanel1.RowCount = 1;
+        	this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
+        	this.tableLayoutPanel1.Size = new System.Drawing.Size(378, 29);
+        	this.tableLayoutPanel1.TabIndex = 7;
+        	// 
+        	// fuzzyAlgorithmComboBox
+        	// 
+        	this.fuzzyAlgorithmComboBox.Dock = System.Windows.Forms.DockStyle.Fill;
+        	this.fuzzyAlgorithmComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+        	this.fuzzyAlgorithmComboBox.Enabled = false;
+        	this.fuzzyAlgorithmComboBox.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F);
+        	this.fuzzyAlgorithmComboBox.FormattingEnabled = true;
+        	this.fuzzyAlgorithmComboBox.Location = new System.Drawing.Point(3, 3);
+        	this.fuzzyAlgorithmComboBox.Name = "fuzzyAlgorithmComboBox";
+        	this.fuzzyAlgorithmComboBox.Size = new System.Drawing.Size(273, 26);
+        	this.fuzzyAlgorithmComboBox.TabIndex = 7;
+        	// 
+        	// fuzzyAlgorithmNumericUpDown
+        	// 
+        	this.fuzzyAlgorithmNumericUpDown.Enabled = false;
+        	this.fuzzyAlgorithmNumericUpDown.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F);
+        	this.fuzzyAlgorithmNumericUpDown.Increment = new decimal(new int[] {
+        	        	        	5,
+        	        	        	0,
+        	        	        	0,
+        	        	        	0});
+        	this.fuzzyAlgorithmNumericUpDown.Location = new System.Drawing.Point(287, 3);
+        	this.fuzzyAlgorithmNumericUpDown.Minimum = new decimal(new int[] {
+        	        	        	1,
+        	        	        	0,
+        	        	        	0,
+        	        	        	0});
+        	this.fuzzyAlgorithmNumericUpDown.Name = "fuzzyAlgorithmNumericUpDown";
+        	this.fuzzyAlgorithmNumericUpDown.Size = new System.Drawing.Size(88, 24);
+        	this.fuzzyAlgorithmNumericUpDown.TabIndex = 8;
+        	this.fuzzyAlgorithmNumericUpDown.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+        	this.fuzzyAlgorithmNumericUpDown.Value = new decimal(new int[] {
+        	        	        	75,
+        	        	        	0,
+        	        	        	0,
+        	        	        	0});
         	// 
         	// saveFileDialog
         	// 
@@ -495,7 +574,7 @@ namespace MovieListCompn
         	// 
         	this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
         	this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-        	this.ClientSize = new System.Drawing.Size(384, 462);
+        	this.ClientSize = new System.Drawing.Size(384, 512);
         	this.Controls.Add(this.mainTableLayoutPanel);
         	this.Controls.Add(this.mainMenuStrip);
         	this.Controls.Add(this.mainStatusStrip);
@@ -515,9 +594,15 @@ namespace MovieListCompn
         	this.matchesTabPage.ResumeLayout(false);
         	this.unmatchedTabPage.ResumeLayout(false);
         	this.collisionsTabPage.ResumeLayout(false);
+        	this.tableLayoutPanel1.ResumeLayout(false);
+        	((System.ComponentModel.ISupportInitialize)(this.fuzzyAlgorithmNumericUpDown)).EndInit();
         	this.ResumeLayout(false);
         	this.PerformLayout();
         }
+        private System.Windows.Forms.NumericUpDown fuzzyAlgorithmNumericUpDown;
+        private System.Windows.Forms.ComboBox fuzzyAlgorithmComboBox;
+        private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
+        private System.Windows.Forms.CheckBox fuzzyMatchesCheckBox;
         private System.Windows.Forms.RichTextBox collisionsRichTextBox;
         private System.Windows.Forms.RichTextBox unmatchedRichTextBox;
         private System.Windows.Forms.TabPage collisionsTabPage;
