@@ -911,7 +911,8 @@ namespace MovieListCompn
         /// <param name="e">Event arguments.</param>
         private void OnMainFormLoad(object sender, EventArgs e)
         {
-            // TODO Select default ratio [SettingsData]
+            // TODO Check fuzzy matches and select default ratio [SettingsData]
+            this.fuzzyMatchesCheckBox.Checked = true;
             this.fuzzyAlgorithmComboBox.SelectedIndex = 0;
         }
 
