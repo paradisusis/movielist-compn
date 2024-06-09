@@ -14,6 +14,7 @@ namespace MovieListCompn
     using System.Linq;
     using System.Reflection;
     using System.Text;
+    using System.Text.RegularExpressions;
     using System.Windows.Forms;
     using FuzzySharp;
     using FuzzySharp.SimilarityRatio;
@@ -211,7 +212,7 @@ namespace MovieListCompn
             this.statusValueToolStripStatusLabel.Text = "processing...";
             this.processButton.Enabled = false;
 
-            /* Set MofileFile lists */
+            /* Set MovieFile lists */
 
             // Set first list movie files
             List<MovieFile> firstList = new List<MovieFile>();
@@ -219,80 +220,117 @@ namespace MovieListCompn
             // Set second list movies
             List<MovieFile> secondList = new List<MovieFile>();
 
+            /* Set title cache dictionary */
+
+            // Set first title cache dictionary
+            Dictionary<string, string> firstTitleCacheDictionary = new Dictionary<string, string>();
+
+            // Set second title cache dictionary
+            Dictionary<string, string> secondTitleCacheDictionary = new Dictionary<string, string>();
+
+            /* Set path cache dictionary */
+
+            // Set first path cache dictionary
+            Dictionary<string, string> firstPathCacheDictionary = new Dictionary<string, string>();
+
+            // Set second path cache dictionary
+            Dictionary<string, string> secondPathCacheDictionary = new Dictionary<string, string>();
+
             /* Populate with movies */
+
+            // The regex file name pattern
+            //#string regexFileNamePattern = "[^A-Za-z0-9_. ]+";
+            string regexFileNamePattern = @"[^\u0000-\u007F]+"; // remove all non-ascii characters
+            string invalidChars = new string(Path.GetInvalidFileNameChars()) + new string(Path.GetInvalidPathChars());
 
             // Set movie detector
             var detector = new MovieDetector();
 
             // Populate first list
-            foreach (var moviePath in File.ReadAllLines(this.firstListTextBox.Text))
+            foreach (var tempMoviePath in File.ReadAllLines(this.firstListTextBox.Text))
             {
                 // Check for empty
-                if (moviePath.Length == 0)
+                if (tempMoviePath.Length == 0)
                 {
                     // Skip iteration
                     continue;
                 }
 
-                // Add movie file
-                firstList.Add(detector.GetInfo(moviePath));
+                string moviePath = Regex.Replace(tempMoviePath.FoldToASCII().Trim(), regexFileNamePattern, string.Empty);
+
+                foreach (char c in invalidChars)
+                {
+                    moviePath = moviePath.Replace(c.ToString(), string.Empty);
+                }
+
+                try
+                {
+                    // TODO Add movie file [Can fold and strip invalid characters by function]
+                    firstList.Add(detector.GetInfo(moviePath));
+
+                    // Add to first path cache dictionary
+                    if (!firstPathCacheDictionary.ContainsKey(moviePath))
+                    {
+                        firstPathCacheDictionary.Add(moviePath, tempMoviePath);
+                    }
+
+                    // Add to first title cache dictionary
+                    if (!firstTitleCacheDictionary.ContainsKey(moviePath))
+                    {
+                        firstTitleCacheDictionary.Add(moviePath, firstList[firstList.Count - 1].Title);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    //#
+                    File.AppendAllText("Errors.txt", $"{Environment.NewLine}{tempMoviePath}");
+                }
             }
 
             // Populate second list
-            foreach (var moviePath in File.ReadAllLines(this.secondListTextBox.Text))
+
+            // Populate second list
+            foreach (var tempMoviePath in File.ReadAllLines(this.secondListTextBox.Text))
             {
                 // Check for empty
-                if (moviePath.Length == 0)
+                if (tempMoviePath.Length == 0)
                 {
                     // Skip iteration
                     continue;
                 }
 
-                // Add movie file
-                secondList.Add(detector.GetInfo(moviePath));
+                string moviePath = Regex.Replace(tempMoviePath.FoldToASCII().Trim(), regexFileNamePattern, string.Empty);
+
+                foreach (char c in invalidChars)
+                {
+                    moviePath = moviePath.Replace(c.ToString(), string.Empty);
+                }
+
+                try
+                {
+                    // TODO Add movie file [Can fold and strip invalid characters by function]
+                    secondList.Add(detector.GetInfo(moviePath));
+
+                    // Add to second path cache dictionary
+                    if (!secondPathCacheDictionary.ContainsKey(moviePath))
+                    {
+                        secondPathCacheDictionary.Add(moviePath, tempMoviePath);
+                    }
+
+                    // Add to second title cache dictionary
+                    if (!secondTitleCacheDictionary.ContainsKey(moviePath))
+                    {
+                        secondTitleCacheDictionary.Add(moviePath, secondList[secondList.Count - 1].Title);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    //#
+                    File.AppendAllText("Errors.txt", $"{Environment.NewLine}{tempMoviePath}");
+                }
             }
 
             /** Pre-processing **/
-
-            /* List caching */
-
-            // Set first list cache
-            List<string> firstListCache = new List<string>(firstList.Select(x => x.Title).ToList<string>());
-
-            // Set second list cache
-            List<string> secondListCache = new List<string>(secondList.Select(x => x.Title).ToList<string>());
-
-            /* Folding and stripping punctuation */
-
-            // TODO Process first list [Single pass]
-            for (int i = 0; i < firstList.Count; i++)
-            {
-                // Fold current foreign characters to ascii and strip punctuation
-                firstList[i].Title = new string(firstList[i].Title.FoldToASCII().Where(c => !char.IsPunctuation(c)).ToArray());
-
-                // TODO DRY it with a function
-                string tempTitle = firstList[i].Title;
-                char[] tempTitlePunctuation = tempTitle.Where(Char.IsPunctuation).Distinct().ToArray();
-                IEnumerable<string> tempTitleWords = tempTitle.Split(new char[0], StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim(tempTitlePunctuation));
-
-                // Set processed string into title
-                firstList[i].Title = string.Join(" ", tempTitleWords);
-            }
-
-            // TODO Process second list [Single pass]
-            for (int i = 0; i < secondList.Count; i++)
-            {
-                // Fold current foreign characters to ascii and strip punctuation
-                secondList[i].Title = new string(secondList[i].Title.FoldToASCII().Where(c => !char.IsPunctuation(c)).ToArray());
-
-                // TODO DRY it with a function
-                string tempTitle = secondList[i].Title;
-                char[] tempTitlePunctuation = tempTitle.Where(Char.IsPunctuation).Distinct().ToArray();
-                IEnumerable<string> tempTitleWords = tempTitle.Split(new char[0], StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim(tempTitlePunctuation));
-
-                // Set processed string into title
-                secondList[i].Title = string.Join(" ", tempTitleWords);
-            }
 
             /* Prepended year */
 
@@ -335,14 +373,14 @@ namespace MovieListCompn
             // First list
             foreach (var item in firstList)
             {
-                // Set lowercase title
+                // Set lowercase 
                 item.Title = item.Title.ToLowerInvariant();
             }
 
             // Second list
             foreach (var item in secondList)
             {
-                // Set lowercase title
+                // Set lowercase 
                 item.Title = item.Title.ToLowerInvariant();
             }
 
@@ -399,54 +437,6 @@ namespace MovieListCompn
                 }
             }
 
-            //#
-            /*var movieTitles = new List<string>();
-
-            foreach (var movie in firstList)
-            {
-                movieTitles.Add(movie.Title);
-            }
-
-            File.WriteAllLines("firstList.txt", movieTitles);
-
-            movieTitles.Clear();
-
-            foreach (var movie in firstList)
-            {
-                movieTitles.Add(movie.Title);
-            }
-
-            File.WriteAllLines("secondList.txt", movieTitles);*/
-
-            /* Set title cache dictionaries */
-
-            // Set first title cache
-            var firstTitleCacheDictionary = new Dictionary<string, string>();
-
-            // Iterate first list
-            for (int i = 0; i < firstList.Count; i++)
-            {
-                // Check if it's not present
-                if (!firstTitleCacheDictionary.ContainsKey(firstList[i].Title))
-                {
-                    // Add title to cache
-                    firstTitleCacheDictionary.Add(firstList[i].Title, firstListCache[i]);
-                }
-            }
-
-            /*// Set second title cache
-            var secondTitleCacheDictionary = new Dictionary<string, string>();
-
-            // Iterate second list
-            for (int i = 0; i < secondList.Count; i++)
-            {
-                // Check if it's not present
-                if (!secondTitleCacheDictionary.ContainsKey(secondList[i].Title))
-                {
-                    // Add title to cache
-                    secondTitleCacheDictionary.Add(secondList[i].Title, secondListCache[i]);
-                }
-            }*/
 
             /** Add matches by direct title or fuzzy **/
 
@@ -523,10 +513,13 @@ namespace MovieListCompn
                 List<string> secondListTitles = secondList.Select(x => x.Title).ToList<string>();
 
                 // The fuzzy matches (sorted) dictionary for the first list
-                var fuzzyMatchesFirstListDictionary = new SortedDictionary<string, List<MovieFile>>();
+                var fuzzyMatchesFirstListDictionary = new SortedDictionary<string, List<string>>();
 
                 // The fuzzy matches (sorted) dictionary for the second list
-                var fuzzyMatchesSecondListDictionary = new SortedDictionary<string, List<MovieFile>>();
+                var fuzzyMatchesSecondListDictionary = new SortedDictionary<string, List<string>>();
+
+                //# TODO Kludge [Look to remove it]
+                var titleToPathDictionary = new Dictionary<string, string>();
 
                 // Collect the fuzzy matches for the first list
                 foreach (var item in firstList)
@@ -541,11 +534,11 @@ namespace MovieListCompn
                         if (!fuzzyMatchesFirstListDictionary.ContainsKey(item.Title))
                         {
                             // Add into fuzzy matches first list dictionary
-                            fuzzyMatchesFirstListDictionary.Add(item.Title, new List<MovieFile>());
+                            fuzzyMatchesFirstListDictionary.Add(item.Title, new List<string>());
                         }
 
                         // Populate with current match
-                        fuzzyMatchesFirstListDictionary[item.Title].Add(secondList[fuzzyItem.Index]);
+                        fuzzyMatchesFirstListDictionary[item.Title].Add(secondList[fuzzyItem.Index].Path);
                     }
                 }
 
@@ -561,12 +554,12 @@ namespace MovieListCompn
                         // Check if must add
                         if (!fuzzyMatchesSecondListDictionary.ContainsKey(item.Title))
                         {
-                            // Add into fuzzy matches first list dictionary
-                            fuzzyMatchesSecondListDictionary.Add(item.Title, new List<MovieFile>());
+                            // Add into fuzzy matches second list dictionary
+                            fuzzyMatchesSecondListDictionary.Add(item.Title, new List<string>());
                         }
 
                         // Populate with current match
-                        fuzzyMatchesSecondListDictionary[item.Title].Add(firstList[fuzzyItem.Index]);
+                        fuzzyMatchesSecondListDictionary[item.Title].Add(firstList[fuzzyItem.Index].Path);
                     }
                 }
 
@@ -578,8 +571,31 @@ namespace MovieListCompn
                     // Check if second list dictionary contains it
                     if (fuzzyMatchesSecondListDictionary.ContainsKey(currentTitle))
                     {
+                        // Cached title
+                        string cachedTitle = firstTitleCacheDictionary[fuzzyMatchesSecondListDictionary[currentTitle][0]];
+
+                        // First list matches
+                        var firstListMatches = new List<string>();
+
+                        // Second list matches
+                        var secondListMatches = new List<string>();
+
+                        // Populate first list matches
+                        foreach (var item in fuzzyMatchesSecondListDictionary[currentTitle].Distinct())
+                        {
+                            // Add by cached path
+                            firstListMatches.Add(firstPathCacheDictionary[item]);
+                        }
+
+                        // Populate second list matches
+                        foreach (var item in fuzzyMatchesFirstListDictionary[currentTitle].Distinct())
+                        {
+                            // Add by cached path
+                            secondListMatches.Add(secondPathCacheDictionary[item]);
+                        }
+
                         // Movie string
-                        string movieString = $"{firstTitleCacheDictionary[currentTitle]}{Environment.NewLine}First list:{Environment.NewLine}{string.Join(Environment.NewLine, fuzzyMatchesFirstListDictionary[currentTitle].Select(f => f.Path).ToList().Distinct())}{Environment.NewLine}Second list:{Environment.NewLine}{string.Join(Environment.NewLine, fuzzyMatchesSecondListDictionary[currentTitle].Select(s => s.Path).ToList().Distinct())}";
+                        string movieString = $"{cachedTitle }{Environment.NewLine}First list:{Environment.NewLine}{string.Join(Environment.NewLine, firstListMatches)}{Environment.NewLine}Second list:{Environment.NewLine}{string.Join(Environment.NewLine, secondListMatches)}";
 
                         // Check it's unique
                         if (!matchesDictionary.ContainsKey(currentTitle))
@@ -591,7 +607,7 @@ namespace MovieListCompn
                             if (fuzzyMatchesFirstListDictionary[currentTitle].Count() > 1 || fuzzyMatchesSecondListDictionary[currentTitle].Count() > 1)
                             {
                                 // Add to collisions dictionary
-                                collisionsDictionary.Add(firstTitleCacheDictionary[currentTitle], movieString);
+                                collisionsDictionary.Add(currentTitle, movieString);
                             }
                         }
                     }
@@ -617,7 +633,7 @@ namespace MovieListCompn
                     var secondListMatches = secondList.Where(x => x.Title == currentTitle);
 
                     // Movie string
-                    string movieString = $"{firstTitleCacheDictionary[movieMatch.Title]}{Environment.NewLine}First list:{Environment.NewLine}{string.Join(Environment.NewLine, firstListMatches.Select(f => f.Path).ToList())}{Environment.NewLine}Second list:{Environment.NewLine}{string.Join(Environment.NewLine, secondListMatches.Select(s => s.Path).ToList())}";
+                    string movieString = $"{firstTitleCacheDictionary[movieMatch.Path]}{Environment.NewLine}First list:{Environment.NewLine}{string.Join(Environment.NewLine, firstListMatches.Select(f => firstPathCacheDictionary[f.Path]).ToList())}{Environment.NewLine}Second list:{Environment.NewLine}{string.Join(Environment.NewLine, secondListMatches.Select(s => secondPathCacheDictionary[s.Path]).ToList())}";
 
                     // Check it's unique
                     if (!matchesDictionary.ContainsKey(currentTitle))
@@ -629,7 +645,7 @@ namespace MovieListCompn
                         if (firstListMatches.Count() > 1 || secondListMatches.Count() > 1)
                         {
                             // Add to collisions dictionary
-                            collisionsDictionary.Add(firstTitleCacheDictionary[movieMatch.Title], movieString);
+                            collisionsDictionary.Add(movieMatch.Title, movieString);
                         }
                     }
                 }
@@ -647,24 +663,6 @@ namespace MovieListCompn
                     // Update count in tab
                     this.matchesTabPage.Text = $"Matches ({matchesDictionary.Count})";
                 }
-
-                /*// Empty file name
-                this.saveFileDialog.FileName = "MovieList-matches.txt";
-
-                // Open save file dialog
-                if (this.saveFileDialog.ShowDialog() == DialogResult.OK && this.saveFileDialog.FileName.Length > 0)
-                {
-                    try
-                    {
-                        // Save to disk
-                        File.WriteAllText(this.saveFileDialog.FileName, string.Join($"{Environment.NewLine}{Environment.NewLine}", matchesDictionary.Values));
-                    }
-                    catch (Exception exception)
-                    {
-                        // Inform user
-                        MessageBox.Show($"Error when saving to \"{Path.GetFileName(this.saveFileDialog.FileName)}\":{Environment.NewLine}{exception.Message}", "Save file error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
-                }*/
             }
 
             // Check if must process unmatched
