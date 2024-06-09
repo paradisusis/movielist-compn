@@ -887,7 +887,7 @@ namespace MovieListCompn
             var aboutForm = new AboutForm(
                 $"About {programTitle}",
                 $"{programTitle} {version.Major}.{version.Minor}.{version.Build}",
-                $"Made for:compn{Environment.NewLine}DonationCoder.com{Environment.NewLine}Day #153, Week #22 @ June 01, 2024",
+                $"Made for:compn{Environment.NewLine}DonationCoder.com{Environment.NewLine}Day #161, Week #23 @ June 09, 2024",
                 licenseText,
                 this.Icon.ToBitmap())
             {
